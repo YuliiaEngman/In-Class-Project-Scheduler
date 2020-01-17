@@ -12,6 +12,9 @@ import Foundation
 
 enum DataPersistanceError: Error { // conforming to the Error Protocol
     case savingError(Error) // associated value
+    case fileDoesNotExist(String)
+    case noData
+    case decodingError(Error)
 }
 
 class PersistanceHelper {
@@ -27,7 +30,7 @@ class PersistanceHelper {
     static func save(event: Event) throws {
         // STEP 1.
         // throws - this will show error in VC (for us!)
-       // get url path to the file that the event will be saved to
+        // get url path to the file that the event will be saved to
         let url = FileManager.pathToDocumentsDirectory(with: filename)
         
         // STEP 2.
@@ -49,10 +52,33 @@ class PersistanceHelper {
             // STEP 5.
             throw DataPersistanceError.savingError(error)
         }
-        
     }
     
     // read - load (retrieve) items from documents directory
-    // update
+    static func loadEvents() throws -> [Event] {
+        // we need access to the filename URL that we are reading from
+        let url = FileManager.pathToDocumentsDirectory(with: filename)
+        
+        //check if file exist
+        // we have to convert url to a String - to do that we use .path on the URL
+        if FileManager.default.fileExists(atPath: url.path) {
+            if let data = FileManager.default.contents(atPath: url.path) {
+                do {
+                    events = try PropertyListDecoder().decode([Event].self, from: data)
+                } catch {
+                    throw DataPersistanceError.decodingError(error)
+                }
+            } else {
+                throw DataPersistanceError.noData
+            }
+        }
+        else {
+            throw DataPersistanceError.fileDoesNotExist(filename)
+        }
+        return events
+    }
+    
+    // update - we will need to create separate VC for this there we add option to update our Events
+    
     // delete - remove item from documents directory
 }

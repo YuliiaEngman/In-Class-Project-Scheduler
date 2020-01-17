@@ -35,12 +35,23 @@ class ScheduleListController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    events = Event.getTestData().sorted { $0.date < $1.date }
+    //events = Event.getTestData().sorted { $0.date < $1.date }
+ 
+    loadEvents()
+    
     tableView.dataSource = self
     
     // print path to document directory
       print(FileManager.getDocumentsDirectory())
   }
+    
+    private func loadEvents() {
+         do {
+            events = try PersistanceHelper.loadEvents().sorted {$0.date < $1.date}
+         } catch {
+            print("error loading events: \(error)")
+         }
+    }
   
   @IBAction func addNewEvent(segue: UIStoryboardSegue) {
     // caveman debugging
